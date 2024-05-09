@@ -39,8 +39,9 @@ impl RespDecode for f64 {
 #[cfg(test)]
 mod tests {
     use anyhow::Result;
+    use bytes::BytesMut;
 
-    use crate::RespFrame;
+    use crate::{RespDecode, RespEncode, RespFrame};
 
     #[test]
     fn test_double_encode() {

@@ -1,13 +1,14 @@
 use anyhow::Result;
-use simple_redis::{Backend, network};
 use tokio::net::TcpListener;
 use tracing::{info, warn};
+
+use simple_redis::{Backend, network};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    let addr = "0.0.0.0:6379";
+    let addr = "0.0.0.0:6500";
     info!("Simple-Redis-Server is listening on {}", addr);
     let listener = TcpListener::bind(addr).await?;
 

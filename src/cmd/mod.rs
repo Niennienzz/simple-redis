@@ -156,7 +156,9 @@ mod tests {
     use anyhow::Result;
     use bytes::BytesMut;
 
-    use crate::{RespDecode, RespNull};
+    use crate::{RespArray, RespDecode, RespFrame, RespNull};
+
+    use super::{Backend, Command, CommandExecutor};
 
     #[test]
     fn test_command() -> Result<()> {

@@ -104,7 +104,9 @@ mod tests {
     use anyhow::Result;
     use bytes::BytesMut;
 
-    use crate::RespDecode;
+    use crate::{BulkString, RespArray, RespDecode, RespFrame};
+
+    use super::{CommandExecutor, HGet, HGetAll, HSet, RESP_OK};
 
     #[test]
     fn test_hget_from_resp_array() -> Result<()> {

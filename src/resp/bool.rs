@@ -33,8 +33,9 @@ impl RespDecode for bool {
 mod tests {
     use anyhow::Result;
     use bytes::BufMut;
+    use bytes::BytesMut;
 
-    use crate::RespFrame;
+    use crate::{RespDecode, RespEncode, RespError, RespFrame};
 
     #[test]
     fn test_boolean_encode() {

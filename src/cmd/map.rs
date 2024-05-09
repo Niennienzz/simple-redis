@@ -7,10 +7,7 @@ use super::{CommandExecutor, extract_args, RESP_OK, Set, validate_command};
 
 impl CommandExecutor for Get {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        match backend.get(&self.key) {
-            Some(value) => value,
-            None => RespFrame::Null(RespNull),
-        }
+        backend.get(&self.key).unwrap_or_else(|| RespFrame::Null(RespNull))
     }
 }
 
@@ -59,7 +56,9 @@ mod tests {
     use anyhow::Result;
     use bytes::BytesMut;
 
-    use crate::{Backend, RespDecode};
+    use crate::{Backend, RespArray, RespDecode, RespFrame};
+
+    use super::{CommandExecutor, Get, RESP_OK, Set};
 
     #[test]
     fn test_get_from_resp_array() -> Result<()> {

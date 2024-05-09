@@ -31,8 +31,9 @@ impl RespDecode for i64 {
 #[cfg(test)]
 mod tests {
     use anyhow::Result;
+    use bytes::BytesMut;
 
-    use crate::RespFrame;
+    use crate::{RespDecode, RespEncode, RespFrame};
 
     #[test]
     fn test_integer_encode() {
