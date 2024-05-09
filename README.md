@@ -8,7 +8,7 @@
 
 - [ECHO](https://redis.io/docs/latest/commands/echo/)
 - [HMGET](https://redis.io/docs/latest/commands/hmget/)
-- [SADD](https://redis.io/docs/latest/commands/sadd/)/[SISMEMBER](https://redis.io/docs/latest/commands/sismember/)
+- [SADD](https://redis.io/docs/latest/commands/sadd/) & [SISMEMBER](https://redis.io/docs/latest/commands/sismember/)
 
 ### Refactoring
 
