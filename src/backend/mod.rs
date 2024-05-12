@@ -44,35 +44,41 @@ impl Backend {
         Self::default()
     }
 
-    pub fn get(&self, key: &str) -> Option<RespFrame> {
+    pub fn string_get(&self, key: &str) -> Option<RespFrame> {
         self.string.get(key).map(|v| v.value().clone())
     }
 
-    pub fn set(&self, key: String, value: RespFrame) {
+    pub fn string_set(&self, key: String, value: RespFrame) {
         self.string.insert(key, value);
     }
 
-    pub fn hget(&self, key: &str, field: &str) -> Option<RespFrame> {
+    pub fn hash_get(&self, key: &str, field: &str) -> Option<RespFrame> {
         self.hmap
             .get(key)
             .and_then(|v| v.get(field).map(|v| v.value().clone()))
     }
 
-    pub fn hset(&self, key: String, field: String, value: RespFrame) {
+    pub fn hash_set(&self, key: String, field: String, value: RespFrame) {
         let hmap = self.hmap.entry(key).or_default();
         hmap.insert(field, value);
     }
 
-    pub fn hgetall(&self, key: &str) -> Option<DashMap<String, RespFrame>> {
+    pub fn hash_get_all(&self, key: &str) -> Option<DashMap<String, RespFrame>> {
         self.hmap.get(key).map(|v| v.clone())
     }
 
-    pub fn set_add(&self, key: String, member: String) -> i64 {
+    pub fn set_add(&self, key: String, members: Vec<String>) -> i64 {
+        let mut count = 0;
         let set = self.set.entry(key).or_default();
-        set.insert(member);
-        1
+        for member in members {
+            if set.insert(member.clone()) {
+                count += 1;
+            }
+        }
+        count
     }
 
+    // Check if members are in the set
     pub fn set_is_member(&self, key: &str, member: &str) -> i64 {
         match self.set.get(key) {
             Some(set) => if set.contains(member) { 1 } else { 0 },

@@ -34,11 +34,11 @@ pub trait CommandExecutor {
 #[enum_dispatch(CommandExecutor)]
 #[derive(Debug)]
 pub enum Command {
-    Get(Get),
-    Set(Set),
-    HGet(HGet),
-    HSet(HSet),
-    HGetAll(HGetAll),
+    Get(StringGet),
+    Set(StringSet),
+    HGet(HashGet),
+    HSet(HashSet),
+    HGetAll(HashGetAll),
     SetAdd(SetAdd),
     SetIsMember(SetIsMember),
     SetMembers(SetMembers),
@@ -47,31 +47,31 @@ pub enum Command {
 }
 
 #[derive(Debug)]
-pub struct Get {
+pub struct StringGet {
     key: String,
 }
 
 #[derive(Debug)]
-pub struct Set {
+pub struct StringSet {
     key: String,
     value: RespFrame,
 }
 
 #[derive(Debug)]
-pub struct HGet {
+pub struct HashGet {
     key: String,
     field: String,
 }
 
 #[derive(Debug)]
-pub struct HSet {
+pub struct HashSet {
     key: String,
     field: String,
     value: RespFrame,
 }
 
 #[derive(Debug)]
-pub struct HGetAll {
+pub struct HashGetAll {
     key: String,
     sort: bool,
 }
@@ -79,7 +79,7 @@ pub struct HGetAll {
 #[derive(Debug)]
 pub struct SetAdd {
     key: String,
-    member: String,
+    members: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -113,11 +113,11 @@ impl TryFrom<RespArray> for Command {
     fn try_from(v: RespArray) -> Result<Self, Self::Error> {
         match v.first() {
             Some(RespFrame::BulkString(ref cmd)) => match cmd.as_ref() {
-                b"get" => Ok(Get::try_from(v)?.into()),
-                b"set" => Ok(Set::try_from(v)?.into()),
-                b"hget" => Ok(HGet::try_from(v)?.into()),
-                b"hset" => Ok(HSet::try_from(v)?.into()),
-                b"hgetall" => Ok(HGetAll::try_from(v)?.into()),
+                b"get" => Ok(StringGet::try_from(v)?.into()),
+                b"set" => Ok(StringSet::try_from(v)?.into()),
+                b"hget" => Ok(HashGet::try_from(v)?.into()),
+                b"hset" => Ok(HashSet::try_from(v)?.into()),
+                b"hgetall" => Ok(HashGetAll::try_from(v)?.into()),
                 b"sadd" => Ok(SetAdd::try_from(v)?.into()),
                 b"sismember" => Ok(SetIsMember::try_from(v)?.into()),
                 b"smembers" => Ok(SetMembers::try_from(v)?.into()),
@@ -136,12 +136,13 @@ impl CommandExecutor for Unsupported {
     }
 }
 
+// If n_args is 0, then we do not check the number of arguments.
 fn validate_command(
     value: &RespArray,
     names: &[&'static str],
     n_args: usize,
 ) -> Result<(), CommandError> {
-    if value.len() != n_args + names.len() {
+    if n_args != 0 && value.len() != n_args + names.len() {
         return Err(CommandError::InvalidArgument(format!(
             "{} command must have exactly {} argument",
             names.join(" "),

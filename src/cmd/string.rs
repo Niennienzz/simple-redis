@@ -1,31 +1,24 @@
 use crate::{
-    cmd::{CommandError, Get},
+    cmd::{CommandError, StringGet},
     RespArray, RespFrame, RespNull,
 };
 
-use super::{CommandExecutor, extract_args, RESP_OK, Set, validate_command};
+use super::{CommandExecutor, extract_args, RESP_OK, StringSet, validate_command};
 
-impl CommandExecutor for Get {
+impl CommandExecutor for StringGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        backend.get(&self.key).unwrap_or_else(|| RespFrame::Null(RespNull))
+        backend.string_get(&self.key).unwrap_or_else(|| RespFrame::Null(RespNull))
     }
 }
 
-impl CommandExecutor for Set {
-    fn execute(self, backend: &crate::Backend) -> RespFrame {
-        backend.set(self.key, self.value);
-        RESP_OK.clone()
-    }
-}
-
-impl TryFrom<RespArray> for Get {
+impl TryFrom<RespArray> for StringGet {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
         validate_command(&value, &["get"], 1)?;
 
         let mut args = extract_args(value, 1)?.into_iter();
         match args.next() {
-            Some(RespFrame::BulkString(key)) => Ok(Get {
+            Some(RespFrame::BulkString(key)) => Ok(StringGet {
                 key: key.try_into()?,
             }),
             _ => Err(CommandError::InvalidArgument("Invalid key".to_string())),
@@ -33,14 +26,21 @@ impl TryFrom<RespArray> for Get {
     }
 }
 
-impl TryFrom<RespArray> for Set {
+impl CommandExecutor for StringSet {
+    fn execute(self, backend: &crate::Backend) -> RespFrame {
+        backend.string_set(self.key, self.value);
+        RESP_OK.clone()
+    }
+}
+
+impl TryFrom<RespArray> for StringSet {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
         validate_command(&value, &["set"], 2)?;
 
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next()) {
-            (Some(RespFrame::BulkString(key)), Some(value)) => Ok(Set {
+            (Some(RespFrame::BulkString(key)), Some(value)) => Ok(StringSet {
                 key: key.try_into()?,
                 value,
             }),
@@ -58,7 +58,7 @@ mod tests {
 
     use crate::{Backend, RespArray, RespDecode, RespFrame};
 
-    use super::{CommandExecutor, Get, RESP_OK, Set};
+    use super::{CommandExecutor, RESP_OK, StringGet, StringSet};
 
     #[test]
     fn test_get_from_resp_array() -> Result<()> {
@@ -67,7 +67,7 @@ mod tests {
 
         let frame = RespArray::decode(&mut buf)?;
 
-        let result: Get = frame.try_into()?;
+        let result: StringGet = frame.try_into()?;
         assert_eq!(result.key, "hello");
 
         Ok(())
@@ -80,7 +80,7 @@ mod tests {
 
         let frame = RespArray::decode(&mut buf)?;
 
-        let result: Set = frame.try_into()?;
+        let result: StringSet = frame.try_into()?;
         assert_eq!(result.key, "hello");
         assert_eq!(result.value, RespFrame::BulkString(b"world".into()));
 
@@ -90,14 +90,14 @@ mod tests {
     #[test]
     fn test_set_get_command() -> Result<()> {
         let backend = Backend::new();
-        let cmd = Set {
+        let cmd = StringSet {
             key: "hello".to_string(),
             value: RespFrame::BulkString(b"world".into()),
         };
         let result = cmd.execute(&backend);
         assert_eq!(result, RESP_OK.clone());
 
-        let cmd = Get {
+        let cmd = StringGet {
             key: "hello".to_string(),
         };
         let result = cmd.execute(&backend);

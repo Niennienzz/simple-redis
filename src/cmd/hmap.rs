@@ -1,14 +1,32 @@
 use crate::{BulkString, cmd::CommandError, RespArray, RespFrame};
 
-use super::{CommandExecutor, extract_args, HGet, HGetAll, HSet, RESP_OK, validate_command};
+use super::{CommandExecutor, extract_args, HashGet, HashGetAll, HashSet, RESP_OK, validate_command};
 
-impl CommandExecutor for HGet {
+impl CommandExecutor for HashGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        backend.hget(&self.key, &self.field).unwrap_or_else(|| RespFrame::Null(crate::RespNull))
+        backend.hash_get(&self.key, &self.field).unwrap_or_else(|| RespFrame::Null(crate::RespNull))
     }
 }
 
-impl CommandExecutor for HGetAll {
+impl TryFrom<RespArray> for HashGet {
+    type Error = CommandError;
+    fn try_from(value: RespArray) -> Result<Self, Self::Error> {
+        validate_command(&value, &["hget"], 2)?;
+
+        let mut args = extract_args(value, 1)?.into_iter();
+        match (args.next(), args.next()) {
+            (Some(RespFrame::BulkString(key)), Some(RespFrame::BulkString(field))) => Ok(HashGet {
+                key: key.try_into()?,
+                field: field.try_into()?,
+            }),
+            _ => Err(CommandError::InvalidArgument(
+                "Invalid key or field".to_string(),
+            )),
+        }
+    }
+}
+
+impl CommandExecutor for HashGetAll {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
         let hmap = backend.hmap.get(&self.key);
 
@@ -34,39 +52,14 @@ impl CommandExecutor for HGetAll {
     }
 }
 
-impl CommandExecutor for HSet {
-    fn execute(self, backend: &crate::Backend) -> RespFrame {
-        backend.hset(self.key, self.field, self.value);
-        RESP_OK.clone()
-    }
-}
-
-impl TryFrom<RespArray> for HGet {
-    type Error = CommandError;
-    fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        validate_command(&value, &["hget"], 2)?;
-
-        let mut args = extract_args(value, 1)?.into_iter();
-        match (args.next(), args.next()) {
-            (Some(RespFrame::BulkString(key)), Some(RespFrame::BulkString(field))) => Ok(HGet {
-                key: key.try_into()?,
-                field: field.try_into()?,
-            }),
-            _ => Err(CommandError::InvalidArgument(
-                "Invalid key or field".to_string(),
-            )),
-        }
-    }
-}
-
-impl TryFrom<RespArray> for HGetAll {
+impl TryFrom<RespArray> for HashGetAll {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
         validate_command(&value, &["hgetall"], 1)?;
 
         let mut args = extract_args(value, 1)?.into_iter();
         match args.next() {
-            Some(RespFrame::BulkString(key)) => Ok(HGetAll {
+            Some(RespFrame::BulkString(key)) => Ok(HashGetAll {
                 key: key.try_into()?,
                 sort: false,
             }),
@@ -75,7 +68,14 @@ impl TryFrom<RespArray> for HGetAll {
     }
 }
 
-impl TryFrom<RespArray> for HSet {
+impl CommandExecutor for HashSet {
+    fn execute(self, backend: &crate::Backend) -> RespFrame {
+        backend.hash_set(self.key, self.field, self.value);
+        RESP_OK.clone()
+    }
+}
+
+impl TryFrom<RespArray> for HashSet {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
         validate_command(&value, &["hset"], 3)?;
@@ -83,7 +83,7 @@ impl TryFrom<RespArray> for HSet {
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next(), args.next()) {
             (Some(RespFrame::BulkString(key)), Some(RespFrame::BulkString(field)), Some(value)) => {
-                Ok(HSet {
+                Ok(HashSet {
                     key: key.try_into()?,
                     field: field.try_into()?,
                     value,
@@ -103,7 +103,7 @@ mod tests {
 
     use crate::{BulkString, RespArray, RespDecode, RespFrame};
 
-    use super::{CommandExecutor, HGet, HGetAll, HSet, RESP_OK};
+    use super::{CommandExecutor, HashGet, HashGetAll, HashSet, RESP_OK};
 
     #[test]
     fn test_hget_from_resp_array() -> Result<()> {
@@ -112,7 +112,7 @@ mod tests {
 
         let frame = RespArray::decode(&mut buf)?;
 
-        let result: HGet = frame.try_into()?;
+        let result: HashGet = frame.try_into()?;
         assert_eq!(result.key, "map");
         assert_eq!(result.field, "hello");
 
@@ -126,7 +126,7 @@ mod tests {
 
         let frame = RespArray::decode(&mut buf)?;
 
-        let result: HGetAll = frame.try_into()?;
+        let result: HashGetAll = frame.try_into()?;
         assert_eq!(result.key, "map");
 
         Ok(())
@@ -139,7 +139,7 @@ mod tests {
 
         let frame = RespArray::decode(&mut buf)?;
 
-        let result: HSet = frame.try_into()?;
+        let result: HashSet = frame.try_into()?;
         assert_eq!(result.key, "map");
         assert_eq!(result.field, "hello");
         assert_eq!(result.value, RespFrame::BulkString(b"world".into()));
@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn test_hset_hget_hgetall_commands() -> Result<()> {
         let backend = crate::Backend::new();
-        let cmd = HSet {
+        let cmd = HashSet {
             key: "map".to_string(),
             field: "hello".to_string(),
             value: RespFrame::BulkString(b"world".into()),
@@ -158,21 +158,21 @@ mod tests {
         let result = cmd.execute(&backend);
         assert_eq!(result, RESP_OK.clone());
 
-        let cmd = HSet {
+        let cmd = HashSet {
             key: "map".to_string(),
             field: "hello1".to_string(),
             value: RespFrame::BulkString(b"world1".into()),
         };
         cmd.execute(&backend);
 
-        let cmd = HGet {
+        let cmd = HashGet {
             key: "map".to_string(),
             field: "hello".to_string(),
         };
         let result = cmd.execute(&backend);
         assert_eq!(result, RespFrame::BulkString(b"world".into()));
 
-        let cmd = HGetAll {
+        let cmd = HashGetAll {
             key: "map".to_string(),
             sort: true,
         };

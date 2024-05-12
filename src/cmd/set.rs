@@ -10,7 +10,7 @@ use super::{
 
 impl CommandExecutor for SetAdd {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        let ret = backend.set_add(self.key, self.member);
+        let ret = backend.set_add(self.key, self.members);
         RespFrame::Integer(ret)
     }
 }
@@ -18,18 +18,25 @@ impl CommandExecutor for SetAdd {
 impl TryFrom<RespArray> for SetAdd {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        validate_command(&value, &["sadd"], 2)?;
+        validate_command(&value, &["sadd"], 0)?;
 
+        // Parse the key.
         let mut args = extract_args(value, 1)?.into_iter();
-        match (args.next(), args.next()) {
-            (Some(RespFrame::BulkString(key)), Some(RespFrame::BulkString(member))) => Ok(SetAdd {
-                key: key.try_into()?,
-                member: member.try_into()?,
-            }),
-            _ => Err(CommandError::InvalidArgument(
-                "Invalid key or member".to_string(),
-            )),
+        let key = match args.next() {
+            Some(RespFrame::BulkString(key)) => key.try_into()?,
+            _ => return Err(CommandError::InvalidArgument("Invalid key".to_string())),
+        };
+
+        // Parse the members.
+        let mut members = Vec::new();
+        for arg in args {
+            match arg {
+                RespFrame::BulkString(member) => members.push(member.try_into()?),
+                _ => return Err(CommandError::InvalidArgument("Invalid member".to_string())),
+            }
         }
+
+        Ok(SetAdd { key, members })
     }
 }
 
@@ -43,7 +50,7 @@ impl CommandExecutor for SetIsMember {
 impl TryFrom<RespArray> for SetIsMember {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        validate_command(&value, &["sismember"], 2)?;
+        validate_command(&value, &["sismember"], 0)?;
 
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next()) {
