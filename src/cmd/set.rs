@@ -10,8 +10,7 @@ use super::{
 
 impl CommandExecutor for SetAdd {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        let ret = backend.set_add(self.key, self.members);
-        RespFrame::Integer(ret)
+        backend.set_add(self.key, self.members)
     }
 }
 
@@ -42,8 +41,7 @@ impl TryFrom<RespArray> for SetAdd {
 
 impl CommandExecutor for SetIsMember {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        let ret = backend.set_is_member(&self.key, &self.member);
-        RespFrame::Integer(ret)
+        backend.set_is_member(&self.key, &self.member)
     }
 }
 

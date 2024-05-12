@@ -1,6 +1,9 @@
-use crate::{BulkString, cmd::CommandError, RespArray, RespFrame};
+use crate::{
+    BulkString, cmd::CommandError,
+    RespArray, RespFrame,
+};
 
-use super::{CommandExecutor, extract_args, HashGet, HashGetAll, HashSet, RESP_OK, validate_command};
+use super::{CommandExecutor, extract_args, HashGet, HashGetAll, HashMultiGet, HashSet, RESP_OK, validate_command};
 
 impl CommandExecutor for HashGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
@@ -93,6 +96,37 @@ impl TryFrom<RespArray> for HashSet {
                 "Invalid key, field or value".to_string(),
             )),
         }
+    }
+}
+
+impl CommandExecutor for HashMultiGet {
+    fn execute(self, backend: &crate::Backend) -> RespFrame {
+        backend.hash_multi_get(&self.key, self.fields)
+    }
+}
+
+impl TryFrom<RespArray> for HashMultiGet {
+    type Error = CommandError;
+    fn try_from(value: RespArray) -> Result<Self, Self::Error> {
+        validate_command(&value, &["HMGET"], None)?;
+
+        // Parse the key.
+        let mut args = extract_args(value, 1)?.into_iter();
+        let key = match args.next() {
+            Some(RespFrame::BulkString(key)) => key.try_into()?,
+            _ => return Err(CommandError::InvalidArgument("Invalid key".to_string())),
+        };
+
+        // Parse the fields.
+        let mut fields = Vec::new();
+        for arg in args {
+            match arg {
+                RespFrame::BulkString(member) => fields.push(member.try_into()?),
+                _ => return Err(CommandError::InvalidArgument("Invalid field".to_string())),
+            }
+        }
+
+        Ok(HashMultiGet { key, fields })
     }
 }
 

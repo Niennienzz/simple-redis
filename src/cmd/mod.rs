@@ -41,6 +41,7 @@ pub enum Command {
     HGet(HashGet),
     HSet(HashSet),
     HGetAll(HashGetAll),
+    HMGet(HashMultiGet),
     SetAdd(SetAdd),
     SetIsMember(SetIsMember),
     SetMembers(SetMembers),
@@ -81,6 +82,12 @@ pub struct HashSet {
 pub struct HashGetAll {
     key: String,
     sort: bool,
+}
+
+#[derive(Debug)]
+pub struct HashMultiGet {
+    key: String,
+    fields: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -126,6 +133,7 @@ impl TryFrom<RespArray> for Command {
                 b"HGET" => Ok(HashGet::try_from(v)?.into()),
                 b"HSET" => Ok(HashSet::try_from(v)?.into()),
                 b"HGETALL" => Ok(HashGetAll::try_from(v)?.into()),
+                b"HMGET" => Ok(HashMultiGet::try_from(v)?.into()),
                 b"SADD" => Ok(SetAdd::try_from(v)?.into()),
                 b"SISMEMBER" => Ok(SetIsMember::try_from(v)?.into()),
                 b"SMEMBERS" => Ok(SetMembers::try_from(v)?.into()),

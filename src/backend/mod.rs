@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use dashmap::{DashMap, DashSet};
 
-use crate::RespFrame;
+use crate::{RespArray, RespFrame, RespNull};
 
 #[derive(Debug, Clone)]
 pub struct Backend(Arc<BackendInner>);
@@ -67,7 +67,28 @@ impl Backend {
         self.hmap.get(key).map(|v| v.clone())
     }
 
-    pub fn set_add(&self, key: String, members: Vec<String>) -> i64 {
+    pub fn hash_multi_get(&self, key: &str, fields: Vec<String>) -> RespFrame {
+        let mut array = Vec::new();
+        match self.hmap.get(key) {
+            Some(hmap) => {
+                for field in fields {
+                    if let Some(value) = hmap.get(&field) {
+                        array.push(value.value().clone());
+                    } else {
+                        array.push(RespFrame::Null(RespNull));
+                    }
+                }
+            }
+            None => {
+                for _ in fields {
+                    array.push(RespFrame::Null(RespNull));
+                }
+            }
+        }
+        RespFrame::Array(RespArray(array))
+    }
+
+    pub fn set_add(&self, key: String, members: Vec<String>) -> RespFrame {
         let mut count = 0;
         let set = self.set.entry(key).or_default();
         for member in members {
@@ -75,14 +96,15 @@ impl Backend {
                 count += 1;
             }
         }
-        count
+        RespFrame::Integer(count)
     }
 
-    pub fn set_is_member(&self, key: &str, member: &str) -> i64 {
-        match self.set.get(key) {
+    pub fn set_is_member(&self, key: &str, member: &str) -> RespFrame {
+        let ret = match self.set.get(key) {
             Some(set) => if set.contains(member) { 1 } else { 0 },
             None => 0,
-        }
+        };
+        RespFrame::Integer(ret)
     }
 
     pub fn set_members(&self, key: &str) -> Option<DashSet<String>> {
