@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- The original implementation of the course can be found [here](https://github.com/tyr-rust-bootcamp/02-simple-redis).
+- The original implementation from the course can be found [here](https://github.com/tyr-rust-bootcamp/02-simple-redis).
 
 ### Support More Commands
 
@@ -21,14 +21,14 @@
 ## How to Run
 
 - Use the `cargo run` command to start the server.
-- The server will listen on `6500` port.
+- The server will listen on the `6500` port.
 - Then, use a Redis client (i.e., [Redis CLI](https://redis.io/docs/latest/develop/connect/cli/)) to connect.
 
 ```bash
 redis-cli -p 6500
 ```
 
-- Now, you can use the Redis commands mentioned above
+- Now, you can use the Redis commands mentioned above.
 
 ```bash
 127.0.0.1:6500> ECHO "Hello World!"
