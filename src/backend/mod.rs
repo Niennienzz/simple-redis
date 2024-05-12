@@ -78,7 +78,6 @@ impl Backend {
         count
     }
 
-    // Check if members are in the set
     pub fn set_is_member(&self, key: &str, member: &str) -> i64 {
         match self.set.get(key) {
             Some(set) => if set.contains(member) { 1 } else { 0 },

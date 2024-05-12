@@ -136,18 +136,20 @@ impl CommandExecutor for Unsupported {
     }
 }
 
-// If n_args is 0, then we do not check the number of arguments.
+// If n_args is None, then we do not check the number of arguments.
 fn validate_command(
     value: &RespArray,
     names: &[&'static str],
-    n_args: usize,
+    n_args: Option<usize>,
 ) -> Result<(), CommandError> {
-    if n_args != 0 && value.len() != n_args + names.len() {
-        return Err(CommandError::InvalidArgument(format!(
-            "{} command must have exactly {} argument",
-            names.join(" "),
-            n_args
-        )));
+    if let Some(n_args) = n_args {
+        if value.len() != n_args + names.len() {
+            return Err(CommandError::InvalidArgument(format!(
+                "{} command must have exactly {} argument",
+                names.join(" "),
+                n_args
+            )));
+        }
     }
 
     for (i, name) in names.iter().enumerate() {

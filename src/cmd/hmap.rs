@@ -11,7 +11,7 @@ impl CommandExecutor for HashGet {
 impl TryFrom<RespArray> for HashGet {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        validate_command(&value, &["hget"], 2)?;
+        validate_command(&value, &["hget"], Some(2))?;
 
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next()) {
@@ -55,7 +55,7 @@ impl CommandExecutor for HashGetAll {
 impl TryFrom<RespArray> for HashGetAll {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        validate_command(&value, &["hgetall"], 1)?;
+        validate_command(&value, &["hgetall"], Some(1))?;
 
         let mut args = extract_args(value, 1)?.into_iter();
         match args.next() {
@@ -78,7 +78,7 @@ impl CommandExecutor for HashSet {
 impl TryFrom<RespArray> for HashSet {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        validate_command(&value, &["hset"], 3)?;
+        validate_command(&value, &["hset"], Some(3))?;
 
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next(), args.next()) {
