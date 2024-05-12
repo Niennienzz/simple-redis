@@ -50,7 +50,7 @@ impl CommandExecutor for SetIsMember {
 impl TryFrom<RespArray> for SetIsMember {
     type Error = CommandError;
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        validate_command(&value, &["sismember"], None)?;
+        validate_command(&value, &["sismember"], Some(2))?;
 
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next()) {

@@ -77,6 +77,13 @@ impl BulkString {
             BulkString::Normal(s.into())
         }
     }
+
+    pub fn to_ascii_uppercase(&self) -> Self {
+        match self {
+            BulkString::Normal(data) => BulkString::Normal(data.to_ascii_uppercase()),
+            BulkString::Null => BulkString::Null,
+        }
+    }
 }
 
 impl TryInto<String> for BulkString {

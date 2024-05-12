@@ -112,15 +112,15 @@ impl TryFrom<RespArray> for Command {
     type Error = CommandError;
     fn try_from(v: RespArray) -> Result<Self, Self::Error> {
         match v.first() {
-            Some(RespFrame::BulkString(ref cmd)) => match cmd.as_ref() {
-                b"get" => Ok(StringGet::try_from(v)?.into()),
-                b"set" => Ok(StringSet::try_from(v)?.into()),
-                b"hget" => Ok(HashGet::try_from(v)?.into()),
-                b"hset" => Ok(HashSet::try_from(v)?.into()),
-                b"hgetall" => Ok(HashGetAll::try_from(v)?.into()),
-                b"sadd" => Ok(SetAdd::try_from(v)?.into()),
-                b"sismember" => Ok(SetIsMember::try_from(v)?.into()),
-                b"smembers" => Ok(SetMembers::try_from(v)?.into()),
+            Some(RespFrame::BulkString(ref cmd)) => match cmd.to_ascii_uppercase().as_ref() {
+                b"GET" => Ok(StringGet::try_from(v)?.into()),
+                b"SET" => Ok(StringSet::try_from(v)?.into()),
+                b"HGET" => Ok(HashGet::try_from(v)?.into()),
+                b"HSET" => Ok(HashSet::try_from(v)?.into()),
+                b"HGETALL" => Ok(HashGetAll::try_from(v)?.into()),
+                b"SADD" => Ok(SetAdd::try_from(v)?.into()),
+                b"SISMEMBER" => Ok(SetIsMember::try_from(v)?.into()),
+                b"SMEMBERS" => Ok(SetMembers::try_from(v)?.into()),
                 _ => Ok(Unsupported.into()),
             },
             _ => Err(CommandError::InvalidCommand(
