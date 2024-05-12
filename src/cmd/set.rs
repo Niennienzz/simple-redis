@@ -23,8 +23,8 @@ impl TryFrom<RespArray> for SetAdd {
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next()) {
             (Some(RespFrame::BulkString(key)), Some(RespFrame::BulkString(member))) => Ok(SetAdd {
-                key: String::from_utf8(key.0)?,
-                member: String::from_utf8(member.0)?,
+                key: key.try_into()?,
+                member: member.try_into()?,
             }),
             _ => Err(CommandError::InvalidArgument(
                 "Invalid key or member".to_string(),
@@ -48,8 +48,8 @@ impl TryFrom<RespArray> for SetIsMember {
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next()) {
             (Some(RespFrame::BulkString(key)), Some(RespFrame::BulkString(member))) => Ok(SetIsMember {
-                key: String::from_utf8(key.0)?,
-                member: String::from_utf8(member.0)?,
+                key: key.try_into()?,
+                member: member.try_into()?,
             }),
             _ => Err(CommandError::InvalidArgument(
                 "Invalid key or member".to_string(),
@@ -81,7 +81,7 @@ impl TryFrom<RespArray> for SetMembers {
         let mut args = extract_args(value, 1)?.into_iter();
         match args.next() {
             Some(RespFrame::BulkString(key)) => Ok(SetMembers {
-                key: String::from_utf8(key.0)?,
+                key: key.try_into()?,
             }),
             _ => Err(CommandError::InvalidArgument("Invalid key".to_string())),
         }

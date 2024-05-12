@@ -8,7 +8,6 @@ mod hmap;
 mod string;
 mod set;
 
-// you could also use once_cell instead of lazy_static
 lazy_static! {
     static ref RESP_OK: RespFrame = SimpleString::new("OK").into();
     static ref RESP_UNSUPPORTED: RespFrame = SimpleString::new("UNSUPPORTED").into();
