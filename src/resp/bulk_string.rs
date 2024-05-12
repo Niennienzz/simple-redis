@@ -59,7 +59,7 @@ impl RespDecode for BulkString {
         }
         buf.advance(end + CRLF_LEN);
         let data = buf.split_to(len + CRLF_LEN);
-        Ok(BulkString::new(data[..len].to_vec()))
+        Ok(BulkString::Normal(data[..len].to_vec()))
     }
 
     fn expect_length(buf: &[u8]) -> Result<usize, RespError> {
@@ -70,11 +70,12 @@ impl RespDecode for BulkString {
 
 impl BulkString {
     pub fn new(s: impl Into<Vec<u8>>) -> Self {
-        BulkString::Normal(s.into())
-    }
-
-    pub fn null() -> Self {
-        BulkString::Null
+        let s = s.into();
+        if s == NULL_BULK_STRING_VEC.as_slice() {
+            Self::Null
+        } else {
+            BulkString::Normal(s.into())
+        }
     }
 }
 
@@ -148,7 +149,7 @@ mod tests {
 
     #[test]
     fn test_null_bulk_string_encode() {
-        let frame: RespFrame = BulkString::null().into();
+        let frame: RespFrame = BulkString::Null.into();
         assert_eq!(frame.encode(), NULL_BULK_STRING_BIN);
     }
 
@@ -177,7 +178,7 @@ mod tests {
         buf.extend_from_slice(NULL_BULK_STRING_BIN);
 
         let frame = BulkString::decode(&mut buf)?;
-        assert_eq!(frame, BulkString::null());
+        assert_eq!(frame, BulkString::Null);
 
         Ok(())
     }
