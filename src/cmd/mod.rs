@@ -36,12 +36,12 @@ pub trait CommandExecutor {
 #[derive(Debug)]
 pub enum Command {
     Echo(Echo),
-    Get(StringGet),
-    Set(StringSet),
-    HGet(HashGet),
-    HSet(HashSet),
-    HGetAll(HashGetAll),
-    HMGet(HashMultiGet),
+    StringGet(StringGet),
+    StringSet(StringSet),
+    HashGet(HashGet),
+    HashSet(HashSet),
+    HashGetAll(HashGetAll),
+    HashMultiGet(HashMultiGet),
     SetAdd(SetAdd),
     SetIsMember(SetIsMember),
     SetMembers(SetMembers),
