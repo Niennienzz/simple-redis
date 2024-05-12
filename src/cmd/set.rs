@@ -1,7 +1,4 @@
-use crate::{
-    cmd::CommandError,
-    RespArray, RespFrame, RespNullArray,
-};
+use crate::{cmd::CommandError, RespArray, RespFrame};
 
 use super::{
     CommandExecutor, extract_args,
@@ -68,12 +65,12 @@ impl CommandExecutor for SetMembers {
         let set = backend.set.get(&self.key);
         match set {
             Some(set) => {
-                let members = set.iter().map(|v| {
+                let members: Vec<RespFrame> = set.iter().map(|v| {
                     RespFrame::BulkString(crate::resp::BulkString::new(v.clone()))
                 }).collect();
-                RespFrame::Array(RespArray(members))
+                RespFrame::Array(RespArray::new(members))
             }
-            None => RespFrame::NullArray(RespNullArray),
+            None => RespFrame::Array(RespArray::empty()),
         }
     }
 }

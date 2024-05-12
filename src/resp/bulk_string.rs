@@ -13,6 +13,8 @@ pub enum BulkString {
     Null,
 }
 
+#[allow(dead_code)]
+const EMPTY_BULK_STRING_BIN: &[u8] = b"$0\r\n\r\n";
 const NULL_BULK_STRING_BIN: &[u8] = b"$-1\r\n";
 const NULL_BULK_STRING_LEN: usize = NULL_BULK_STRING_BIN.len();
 
@@ -40,7 +42,7 @@ impl RespEncode for BulkString {
 impl RespDecode for BulkString {
     const PREFIX: &'static str = "$";
     fn decode(buf: &mut BytesMut) -> Result<Self, RespError> {
-        // Check if the buffer is long enough to contain the frame.
+        // Null bulk string is the minimum encoding of a bulk string.
         if buf.len() < NULL_BULK_STRING_LEN {
             return Err(RespError::NotComplete);
         }
@@ -155,7 +157,13 @@ mod tests {
     }
 
     #[test]
-    fn test_null_bulk_string_encode() {
+    fn test_bulk_string_encode_empty() {
+        let frame: RespFrame = BulkString::new(b"".to_vec()).into();
+        assert_eq!(frame.encode(), EMPTY_BULK_STRING_BIN);
+    }
+
+    #[test]
+    fn test_bulk_string_encode_null() {
         let frame: RespFrame = BulkString::Null.into();
         assert_eq!(frame.encode(), NULL_BULK_STRING_BIN);
     }
@@ -180,7 +188,18 @@ mod tests {
     }
 
     #[test]
-    fn test_null_bulk_string_decode() -> Result<()> {
+    fn test_bulk_string_decode_empty() -> Result<()> {
+        let mut buf = BytesMut::new();
+        buf.extend_from_slice(EMPTY_BULK_STRING_BIN);
+
+        let frame = BulkString::decode(&mut buf)?;
+        assert_eq!(frame, BulkString::new(b""));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_bulk_string_decode_null() -> Result<()> {
         let mut buf = BytesMut::new();
         buf.extend_from_slice(NULL_BULK_STRING_BIN);
 

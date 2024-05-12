@@ -13,7 +13,7 @@ use super::{BUF_CAP, calc_total_length, CRLF_LEN, parse_length};
 pub struct RespMap(pub(crate) BTreeMap<String, RespFrame>);
 
 // - map: "%<number-of-entries>\r\n<key-1><value-1>...<key-n><value-n>"
-// we only support string key which encode to SimpleString
+// we only support string key which encodes to SimpleString
 impl RespEncode for RespMap {
     fn encode(self) -> Vec<u8> {
         let mut buf = Vec::with_capacity(BUF_CAP);

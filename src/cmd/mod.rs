@@ -190,7 +190,11 @@ fn validate_command(
 }
 
 fn extract_args(value: RespArray, start: usize) -> Result<Vec<RespFrame>, CommandError> {
-    Ok(value.0.into_iter().skip(start).collect::<Vec<RespFrame>>())
+    let mut args = Vec::new();
+    for arg in value.into_iter().skip(start) {
+        args.push(arg);
+    }
+    Ok(args)
 }
 
 #[cfg(test)]

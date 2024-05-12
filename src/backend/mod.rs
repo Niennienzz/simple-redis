@@ -85,7 +85,7 @@ impl Backend {
                 }
             }
         }
-        RespFrame::Array(RespArray(array))
+        RespFrame::Array(RespArray::new(array))
     }
 
     pub fn set_add(&self, key: String, members: Vec<String>) -> RespFrame {
