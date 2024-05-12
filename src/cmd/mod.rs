@@ -5,11 +5,13 @@ use thiserror::Error;
 use crate::{Backend, RespArray, RespError, RespFrame, SimpleString};
 
 mod hmap;
-mod map;
+mod string;
+mod set;
 
 // you could also use once_cell instead of lazy_static
 lazy_static! {
     static ref RESP_OK: RespFrame = SimpleString::new("OK").into();
+    static ref RESP_UNSUPPORTED: RespFrame = SimpleString::new("UNSUPPORTED").into();
 }
 
 #[derive(Error, Debug)]
@@ -38,9 +40,11 @@ pub enum Command {
     HGet(HGet),
     HSet(HSet),
     HGetAll(HGetAll),
+    SetAdd(SetAdd),
+    SetIsMember(SetIsMember),
+    SetMembers(SetMembers),
 
-    // unrecognized command
-    Unrecognized(Unrecognized),
+    Unsupported(Unsupported),
 }
 
 #[derive(Debug)]
@@ -74,7 +78,24 @@ pub struct HGetAll {
 }
 
 #[derive(Debug)]
-pub struct Unrecognized;
+pub struct SetAdd {
+    key: String,
+    member: String,
+}
+
+#[derive(Debug)]
+pub struct SetIsMember {
+    key: String,
+    member: String,
+}
+
+#[derive(Debug)]
+pub struct SetMembers {
+    key: String,
+}
+
+#[derive(Debug)]
+pub struct Unsupported;
 
 impl TryFrom<RespFrame> for Command {
     type Error = CommandError;
@@ -98,7 +119,10 @@ impl TryFrom<RespArray> for Command {
                 b"hget" => Ok(HGet::try_from(v)?.into()),
                 b"hset" => Ok(HSet::try_from(v)?.into()),
                 b"hgetall" => Ok(HGetAll::try_from(v)?.into()),
-                _ => Ok(Unrecognized.into()),
+                b"sadd" => Ok(SetAdd::try_from(v)?.into()),
+                b"sismember" => Ok(SetIsMember::try_from(v)?.into()),
+                b"smembers" => Ok(SetMembers::try_from(v)?.into()),
+                _ => Ok(Unsupported.into()),
             },
             _ => Err(CommandError::InvalidCommand(
                 "Command must have a BulkString as the first argument".to_string(),
@@ -107,9 +131,9 @@ impl TryFrom<RespArray> for Command {
     }
 }
 
-impl CommandExecutor for Unrecognized {
+impl CommandExecutor for Unsupported {
     fn execute(self, _: &Backend) -> RespFrame {
-        RESP_OK.clone()
+        RESP_UNSUPPORTED.clone()
     }
 }
 

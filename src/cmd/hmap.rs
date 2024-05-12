@@ -4,10 +4,7 @@ use super::{CommandExecutor, extract_args, HGet, HGetAll, HSet, RESP_OK, validat
 
 impl CommandExecutor for HGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        match backend.hget(&self.key, &self.field) {
-            Some(value) => value,
-            None => RespFrame::Null(crate::RespNull),
-        }
+        backend.hget(&self.key, &self.field).unwrap_or_else(|| RespFrame::Null(crate::RespNull))
     }
 }
 

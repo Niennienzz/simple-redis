@@ -1,7 +1,7 @@
 use std::ops::Deref;
 use std::sync::Arc;
 
-use dashmap::DashMap;
+use dashmap::{DashMap, DashSet};
 
 use crate::RespFrame;
 
@@ -10,8 +10,9 @@ pub struct Backend(Arc<BackendInner>);
 
 #[derive(Debug)]
 pub struct BackendInner {
-    pub(crate) map: DashMap<String, RespFrame>,
+    pub(crate) string: DashMap<String, RespFrame>,
     pub(crate) hmap: DashMap<String, DashMap<String, RespFrame>>,
+    pub(crate) set: DashMap<String, DashSet<String>>,
 }
 
 impl Deref for Backend {
@@ -31,8 +32,9 @@ impl Default for Backend {
 impl Default for BackendInner {
     fn default() -> Self {
         Self {
-            map: DashMap::new(),
+            string: DashMap::new(),
             hmap: DashMap::new(),
+            set: DashMap::new(),
         }
     }
 }
@@ -43,11 +45,11 @@ impl Backend {
     }
 
     pub fn get(&self, key: &str) -> Option<RespFrame> {
-        self.map.get(key).map(|v| v.value().clone())
+        self.string.get(key).map(|v| v.value().clone())
     }
 
     pub fn set(&self, key: String, value: RespFrame) {
-        self.map.insert(key, value);
+        self.string.insert(key, value);
     }
 
     pub fn hget(&self, key: &str, field: &str) -> Option<RespFrame> {
@@ -63,5 +65,22 @@ impl Backend {
 
     pub fn hgetall(&self, key: &str) -> Option<DashMap<String, RespFrame>> {
         self.hmap.get(key).map(|v| v.clone())
+    }
+
+    pub fn set_add(&self, key: String, member: String) -> i64 {
+        let set = self.set.entry(key).or_default();
+        set.insert(member);
+        1
+    }
+
+    pub fn set_is_member(&self, key: &str, member: &str) -> i64 {
+        match self.set.get(key) {
+            Some(set) => if set.contains(member) { 1 } else { 0 },
+            None => 0,
+        }
+    }
+
+    pub fn set_members(&self, key: &str) -> Option<DashSet<String>> {
+        self.set.get(key).map(|v| v.clone())
     }
 }
