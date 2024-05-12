@@ -7,6 +7,7 @@ use crate::{Backend, RespArray, RespError, RespFrame, SimpleString};
 mod hmap;
 mod string;
 mod set;
+mod echo;
 
 lazy_static! {
     static ref RESP_OK: RespFrame = SimpleString::new("OK").into();
@@ -34,6 +35,7 @@ pub trait CommandExecutor {
 #[enum_dispatch(CommandExecutor)]
 #[derive(Debug)]
 pub enum Command {
+    Echo(Echo),
     Get(StringGet),
     Set(StringSet),
     HGet(HashGet),
@@ -44,6 +46,11 @@ pub enum Command {
     SetMembers(SetMembers),
 
     Unsupported(Unsupported),
+}
+
+#[derive(Debug)]
+pub struct Echo {
+    message: String,
 }
 
 #[derive(Debug)]
@@ -113,6 +120,7 @@ impl TryFrom<RespArray> for Command {
     fn try_from(v: RespArray) -> Result<Self, Self::Error> {
         match v.first() {
             Some(RespFrame::BulkString(ref cmd)) => match cmd.to_ascii_uppercase().as_ref() {
+                b"ECHO" => Ok(Echo::try_from(v)?.into()),
                 b"GET" => Ok(StringGet::try_from(v)?.into()),
                 b"SET" => Ok(StringSet::try_from(v)?.into()),
                 b"HGET" => Ok(HashGet::try_from(v)?.into()),
@@ -155,7 +163,7 @@ fn validate_command(
     for (i, name) in names.iter().enumerate() {
         match value[i] {
             RespFrame::BulkString(ref cmd) => {
-                if cmd.as_ref().to_ascii_lowercase() != name.as_bytes() {
+                if cmd.to_ascii_uppercase().as_ref() != name.as_bytes() {
                     return Err(CommandError::InvalidCommand(format!(
                         "Invalid command: expected {}, got {}",
                         name,
