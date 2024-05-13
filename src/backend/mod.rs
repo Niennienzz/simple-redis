@@ -92,7 +92,7 @@ impl Backend {
         let mut count = 0;
         let set = self.set.entry(key).or_default();
         for member in members {
-            if set.insert(member.clone()) {
+            if set.insert(member) {
                 count += 1;
             }
         }

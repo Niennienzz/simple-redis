@@ -19,7 +19,7 @@ const NULL_BULK_STRING_BIN: &[u8] = b"$-1\r\n";
 const NULL_BULK_STRING_LEN: usize = NULL_BULK_STRING_BIN.len();
 
 lazy_static! {
-    static ref NULL_BULK_STRING_VEC: Vec<u8> = Vec::from(&NULL_BULK_STRING_BIN[..]);
+    static ref NULL_BULK_STRING_VEC: Vec<u8> = Vec::from(NULL_BULK_STRING_BIN);
 }
 
 // - Normal bulk string: "$<length>\r\n<data>\r\n"
@@ -76,7 +76,7 @@ impl BulkString {
         if s == NULL_BULK_STRING_VEC.as_slice() {
             Self::Null
         } else {
-            BulkString::Normal(s.into())
+            BulkString::Normal(s)
         }
     }
 

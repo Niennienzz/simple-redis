@@ -7,7 +7,7 @@ use super::{CommandExecutor, extract_args, HashGet, HashGetAll, HashMultiGet, Ha
 
 impl CommandExecutor for HashGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        backend.hash_get(&self.key, &self.field).unwrap_or_else(|| RespFrame::Null(crate::RespNull))
+        backend.hash_get(&self.key, &self.field).unwrap_or(RespFrame::Null(crate::RespNull))
     }
 }
 
