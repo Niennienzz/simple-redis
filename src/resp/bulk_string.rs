@@ -73,7 +73,7 @@ impl RespDecode for BulkString {
 impl BulkString {
     pub fn new(s: impl Into<Vec<u8>>) -> Self {
         let s = s.into();
-        if s == NULL_BULK_STRING_VEC.as_slice() {
+        if s == NULL_BULK_STRING_BIN {
             Self::Null
         } else {
             BulkString::Normal(s)
@@ -118,26 +118,8 @@ impl Deref for BulkString {
     }
 }
 
-impl From<&str> for BulkString {
-    fn from(s: &str) -> Self {
-        BulkString::new(s.as_bytes())
-    }
-}
-
-impl From<String> for BulkString {
-    fn from(s: String) -> Self {
-        BulkString::new(s)
-    }
-}
-
-impl From<&[u8]> for BulkString {
-    fn from(s: &[u8]) -> Self {
-        BulkString::new(s)
-    }
-}
-
-impl<const N: usize> From<&[u8; N]> for BulkString {
-    fn from(s: &[u8; N]) -> Self {
+impl<T> From<T> for BulkString where T: Into<Vec<u8>> {
+    fn from(s: T) -> Self {
         BulkString::new(s)
     }
 }
