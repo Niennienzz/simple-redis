@@ -4,10 +4,10 @@ use thiserror::Error;
 
 use crate::{Backend, RespArray, RespError, RespFrame, SimpleString};
 
-mod hmap;
-mod string;
-mod set;
 mod echo;
+mod hmap;
+mod set;
+mod string;
 
 lazy_static! {
     static ref RESP_OK: RespFrame = SimpleString::new("OK").into();

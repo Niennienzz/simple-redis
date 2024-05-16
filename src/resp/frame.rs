@@ -2,8 +2,8 @@ use bytes::BytesMut;
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    BulkString, RespArray, RespDecode, RespError, RespMap, RespNull,
-    RespSet, SimpleError, SimpleString,
+    BulkString, RespArray, RespDecode, RespError, RespMap, RespNull, RespSet, SimpleError,
+    SimpleString,
 };
 
 #[enum_dispatch(RespEncode)]

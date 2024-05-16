@@ -1,13 +1,15 @@
-use crate::{
-    BulkString, cmd::CommandError,
-    RespArray, RespFrame,
-};
+use crate::{BulkString, cmd::CommandError, RespArray, RespFrame};
 
-use super::{CommandExecutor, extract_args, HashGet, HashGetAll, HashMultiGet, HashSet, RESP_OK, validate_command};
+use super::{
+    CommandExecutor, extract_args, HashGet, HashGetAll, HashMultiGet, HashSet, RESP_OK,
+    validate_command,
+};
 
 impl CommandExecutor for HashGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        backend.hash_get(&self.key, &self.field).unwrap_or(RespFrame::Null(crate::RespNull))
+        backend
+            .hash_get(&self.key, &self.field)
+            .unwrap_or(RespFrame::Null(crate::RespNull))
     }
 }
 

@@ -1,9 +1,6 @@
 use crate::{cmd::CommandError, RespArray, RespFrame};
 
-use super::{
-    CommandExecutor, extract_args,
-    SetAdd, SetIsMember, SetMembers, validate_command,
-};
+use super::{CommandExecutor, extract_args, SetAdd, SetIsMember, SetMembers, validate_command};
 
 impl CommandExecutor for SetAdd {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
@@ -49,10 +46,12 @@ impl TryFrom<RespArray> for SetIsMember {
 
         let mut args = extract_args(value, 1)?.into_iter();
         match (args.next(), args.next()) {
-            (Some(RespFrame::BulkString(key)), Some(RespFrame::BulkString(member))) => Ok(SetIsMember {
-                key: key.try_into()?,
-                member: member.try_into()?,
-            }),
+            (Some(RespFrame::BulkString(key)), Some(RespFrame::BulkString(member))) => {
+                Ok(SetIsMember {
+                    key: key.try_into()?,
+                    member: member.try_into()?,
+                })
+            }
             _ => Err(CommandError::InvalidArgument(
                 "Invalid key or member".to_string(),
             )),
@@ -65,9 +64,10 @@ impl CommandExecutor for SetMembers {
         let set = backend.set.get(&self.key);
         match set {
             Some(set) => {
-                let members: Vec<RespFrame> = set.iter().map(|v| {
-                    RespFrame::BulkString(crate::resp::BulkString::new(v.clone()))
-                }).collect();
+                let members: Vec<RespFrame> = set
+                    .iter()
+                    .map(|v| RespFrame::BulkString(crate::resp::BulkString::new(v.clone())))
+                    .collect();
                 RespFrame::Array(RespArray::new(members))
             }
             None => RespFrame::Array(RespArray::empty()),

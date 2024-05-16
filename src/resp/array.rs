@@ -127,7 +127,7 @@ mod tests {
             BulkString::new("hello".to_string()).into(),
             BulkString::new("world".to_string()).into(),
         ])
-            .into();
+        .into();
         assert_eq!(
             &frame.encode(),
             b"*3\r\n$3\r\nset\r\n$5\r\nhello\r\n$5\r\nworld\r\n"

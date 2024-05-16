@@ -118,7 +118,10 @@ impl Deref for BulkString {
     }
 }
 
-impl<T> From<T> for BulkString where T: Into<Vec<u8>> {
+impl<T> From<T> for BulkString
+where
+    T: Into<Vec<u8>>,
+{
     fn from(s: T) -> Self {
         BulkString::new(s)
     }

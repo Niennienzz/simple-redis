@@ -101,7 +101,13 @@ impl Backend {
 
     pub fn set_is_member(&self, key: &str, member: &str) -> RespFrame {
         let ret = match self.set.get(key) {
-            Some(set) => if set.contains(member) { 1 } else { 0 },
+            Some(set) => {
+                if set.contains(member) {
+                    1
+                } else {
+                    0
+                }
+            }
             None => 0,
         };
         RespFrame::Integer(ret)

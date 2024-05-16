@@ -7,7 +7,9 @@ use super::{CommandExecutor, extract_args, RESP_OK, StringSet, validate_command}
 
 impl CommandExecutor for StringGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        backend.string_get(&self.key).unwrap_or(RespFrame::Null(RespNull))
+        backend
+            .string_get(&self.key)
+            .unwrap_or(RespFrame::Null(RespNull))
     }
 }
 

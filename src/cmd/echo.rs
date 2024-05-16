@@ -1,7 +1,4 @@
-use crate::{
-    BulkString,
-    cmd::CommandError, RespArray, RespFrame,
-};
+use crate::{BulkString, cmd::CommandError, RespArray, RespFrame};
 
 use super::{CommandExecutor, Echo, extract_args, validate_command};
 
