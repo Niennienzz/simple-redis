@@ -3,7 +3,7 @@ use crate::{
     RespArray, RespFrame, RespNull,
 };
 
-use super::{CommandExecutor, extract_args, RESP_OK, StringSet, validate_command};
+use super::{extract_args, validate_command, CommandExecutor, StringSet, RESP_OK};
 
 impl CommandExecutor for StringGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
@@ -60,7 +60,7 @@ mod tests {
 
     use crate::{Backend, RespArray, RespDecode, RespFrame};
 
-    use super::{CommandExecutor, RESP_OK, StringGet, StringSet};
+    use super::{CommandExecutor, StringGet, StringSet, RESP_OK};
 
     #[test]
     fn test_get_from_resp_array() -> Result<()> {

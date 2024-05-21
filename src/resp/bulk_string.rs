@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 
 use crate::{RespDecode, RespEncode, RespError};
 
-use super::{CRLF_LEN, parse_length};
+use super::{parse_length, CRLF_LEN};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
 pub enum BulkString {

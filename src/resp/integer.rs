@@ -2,7 +2,7 @@ use bytes::BytesMut;
 
 use crate::{RespDecode, RespEncode, RespError};
 
-use super::{CRLF_LEN, extract_simple_frame_data};
+use super::{extract_simple_frame_data, CRLF_LEN};
 
 // - integer: ":[<+|->]<value>\r\n"
 impl RespEncode for i64 {

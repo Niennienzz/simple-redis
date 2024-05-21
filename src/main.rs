@@ -2,7 +2,7 @@ use anyhow::Result;
 use tokio::net::TcpListener;
 use tracing::{info, warn};
 
-use simple_redis::{Backend, network};
+use simple_redis::{network, Backend};
 
 #[tokio::main]
 async fn main() -> Result<()> {

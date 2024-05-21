@@ -1,6 +1,6 @@
 use crate::{cmd::CommandError, RespArray, RespFrame};
 
-use super::{CommandExecutor, extract_args, SetAdd, SetIsMember, SetMembers, validate_command};
+use super::{extract_args, validate_command, CommandExecutor, SetAdd, SetIsMember, SetMembers};
 
 impl CommandExecutor for SetAdd {
     fn execute(self, backend: &crate::Backend) -> RespFrame {

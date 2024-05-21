@@ -7,7 +7,7 @@ use bytes::{Buf, BytesMut};
 
 use crate::{RespDecode, RespEncode, RespError, RespFrame, SimpleString};
 
-use super::{BUF_CAP, calc_total_length, CRLF_LEN, parse_length};
+use super::{calc_total_length, parse_length, BUF_CAP, CRLF_LEN};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct RespMap(pub(crate) BTreeMap<String, RespFrame>);
